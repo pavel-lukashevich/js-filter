@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>тест</title>
+</head>
+
+<body>
+
+<p><input type="text" id="inp" placeholder="Поиск"></p>
+<p><label><input type="checkbox" id="check">с учётом регистра</label></p>
+<p><button onclick="searchByLength()">фильтр по длине</button>
+<button onclick="searchBySubstring()">фильтр по подстроке</button></p>
+<hr>
+
+<div id="result"></div>
+
+<script>
+
+var MRSoftArray = {};
+var resultDiv = document.getElementById('result');
+
+// получение json
+var xhr = new XMLHttpRequest();
+xhr.open('GET', 'proxy.php', true);
+xhr.send();
+
+xhr.onreadystatechange = function() {
+  if (xhr.readyState != 4) return;
+
+  if (xhr.status != 200) {
+	alert(xhr.status + ': ' + xhr.statusText);
+  } else {
+	MRSoftArray = JSON.parse(xhr.responseText);
+	MRSoftArray = MRSoftArray['data'];
+  }
+}
+
+// получение данных инпут и чекбокс
+function getForm(){
+	var form = {};
+	form.input = document.getElementById('inp').value;
+	form.checkbox = document.getElementById('check').checked;
+	return form;
+}
+
+// проверка на пустоту
+function inputIsNull(form){
+	
+	if(!form['input'] || form['input'].length === 0){
+		resultDiv.innerHTML = ' строка поиска не должна быть пустой ';
+		return true;
+	}
+	return false;
+}
+
+// проверка на число 
+function inputIsNumber(form){
+	var number = Number(form['input']);
+	if(!isNaN(number) && /\S/.test(form['input'])){
+		return number;
+	}
+	return false;
+}
+
+// поиск по длине
+function searchByLength(){
+	var form = getForm();
+
+	if (inputIsNull(form)) {
+		return;
+	}
+	
+	number = inputIsNumber(form)
+	if(number !== false){
+		var result = '';
+		for (var key in MRSoftArray){
+			if(number < MRSoftArray[key].length){
+				result += MRSoftArray[key]+'<br>';
+			} 
+		}
+		resultDiv.innerHTML = result  || 'такой длинной строки нет';
+	} else {
+		resultDiv.innerHTML = ' нельзя искать длину по подстроке<br> попробуйте соседнюю кнопку ';	
+	};
+}
+
+// поиск по подстроке
+function searchBySubstring(){
+	var form = getForm();
+
+	if (inputIsNull(form)) {
+		return;
+	}
+	
+	substr = form['input'];
+	var result = '';
+	if (form['checkbox']) {
+		for (var key in MRSoftArray){
+			if(MRSoftArray[key].indexOf(substr) >= 0){
+				result += MRSoftArray[key]+'<br>';
+			} 
+		}
+	} else {
+		for (var key in MRSoftArray){
+			if(MRSoftArray[key].toUpperCase().indexOf(substr.toUpperCase()) >= 0){
+				result += MRSoftArray[key]+'<br>';
+			} 
+		}
+	}
+	resultDiv.innerHTML = result || 'такой подстроки не найдено';
+
+}
+
+</script>
+</body>
+</html>
